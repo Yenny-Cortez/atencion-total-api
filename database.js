@@ -1,9 +1,9 @@
 const { Sequelize } = require('sequelize');
 
-// Configuramos la conexión a MySQL (XAMPP corregido)
+// Configuramos la conexión a MySQL para que funcione dentro de Docker
 const sequelize = new Sequelize('atencion_total_db', 'root', '123456', {
-  host: '127.0.0.1', // Forzamos IP para que respete el puerto
-  port: 3307,        // <--- Añadimos tu puerto correcto
+  host: 'host.docker.internal', // <--- Cambiado para Docker
+  port: 3307,                   // Mantenemos tu puerto correcto
   dialect: 'mysql',
   logging: false 
 });
