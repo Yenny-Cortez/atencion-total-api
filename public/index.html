@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>API Contactos - Atención Total</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #e9ecef; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .btn-edit { background-color: #ffc107; color: black; margin-right: 5px; }
+        .btn-delete { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Directorio de Contactos</h1>
+        
+        <!-- Formulario de Creación -->
+        <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" id="name" placeholder="Ej. John Doe">
+        </div>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="email" placeholder="Ej. john@finco.com">
+        </div>
+        <div class="form-group">
+            <label>Teléfono:</label>
+            <input type="text" id="phone" placeholder="Ej. 123456789">
+        </div>
+        <button onclick="guardarContacto()">Guardar</button>
+
+        <!-- Tabla de Listado -->
+        <table id="tablaContactos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = '/api/contacts';
+        let editandoId = null;
+
+        // Listar contactos (GET)
+        async function cargarContactos() {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            const tbody = document.querySelector('#tablaContactos tbody');
+            tbody.innerHTML = '';
+            
+            data.forEach(contacto => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${contacto.id}</td>
+                        <td>${contacto.name}</td>
+                        <td>${contacto.email}</td>
+                        <td>${contacto.phone}</td>
+                        <td>
+                            <button class="btn-edit" onclick="editarContacto(${contacto.id}, '${contacto.name}', '${contacto.email}', '${contacto.phone}')">Editar</button>
+                            <button class="btn-delete" onclick="eliminarContacto(${contacto.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Crear o Actualizar (POST / PUT)
+        async function guardarContacto() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+
+            if (!name || !email || !phone) return alert('Por favor, llene todos los campos.');
+
+            const method = editandoId ? 'PUT' : 'POST';
+            const url = editandoId ? `${API_URL}/${editandoId}` : API_URL;
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, phone })
+            });
+
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            editandoId = null;
+            cargarContactos();
+        }
+
+        function editarContacto(id, name, email, phone) {
+            document.getElementById('name').value = name;
+            document.getElementById('email').value = email;
+            document.getElementById('phone').value = phone;
+            editandoId = id;
+        }
+
+        async function eliminarContacto(id) {
+            if (confirm('¿Estás seguro de eliminar este contacto?')) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                cargarContactos();
+            }
+        }
+
+        // Cargar al iniciar la página
+        cargarContactos();
+    </script>
+</body>
+</html>
